@@ -1,0 +1,14 @@
+
+@if (cameraAvailable) {
+
+<video #video autoplay playsinline class="cam-container"></video>
+
+} @else {
+
+<div class="cam-container no-cam">
+  <button class="retry-btn" (click)="startCamera()">
+    Kamera aktivieren
+  </button>
+</div>
+
+}
