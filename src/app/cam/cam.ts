@@ -4,10 +4,11 @@ import {
   ElementRef,
   ViewChild
 } from '@angular/core';
+import {DartDetectorComponent} from '../dart-detector/dart-detector';
 
 @Component({
   selector: 'app-cam',
-  imports: [],
+  imports: [DartDetectorComponent],
   templateUrl: './cam.html',
   styleUrl: './cam.scss',
 })
