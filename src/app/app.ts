@@ -1,7 +1,6 @@
 import {ApplicationConfig, Component, signal} from '@angular/core';
 import {provideRouter, RouterOutlet} from '@angular/router';
 import {Header} from './header/header';
-import {Cam} from './cam/cam';
 import {Footer} from './footer/footer';
 import {routes} from './app.routes';
 

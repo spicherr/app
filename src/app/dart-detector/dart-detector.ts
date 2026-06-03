@@ -12,7 +12,7 @@ declare var cv: any;
   templateUrl: './dart-detector.html',
   styleUrls: ['./dart-detector.scss'],
 })
-export class DartDetectorComponent implements AfterViewInit {
+export class DartDetector implements AfterViewInit {
   @ViewChild('video', { static: true })
   videoRef!: ElementRef<HTMLVideoElement>;
 
