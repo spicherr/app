@@ -4,12 +4,12 @@ import {Calibration} from './features/calibration/calibration';
 import {Settings} from './features/settings/settings';
 import {DartDetector} from './dart-detector/dart-detector';
 import {CameraView} from './shared/camera-view/camera-view';
+import {Dashboard} from './dashboard/dashboard';
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'dart',
-    pathMatch: 'full',
+    component: Dashboard
   },
   {
     path: 'dart',

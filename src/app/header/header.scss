@@ -1,0 +1,27 @@
+nav {
+  background-color: #333;
+  padding: 10px;
+}
+
+nav ul {
+  list-style-type: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+nav li {
+  margin-right: 20px;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* Wird automatisch zugewiesen, wenn der Link aktiv ist */
+nav a.active {
+  color: #4caf50;
+  border-bottom: 2px solid #4caf50;
+}
