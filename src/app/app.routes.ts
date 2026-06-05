@@ -8,7 +8,7 @@ import {CameraView} from './shared/camera-view/camera-view';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'dart',
+    redirectTo: 'game',
     pathMatch: 'full',
   },
   {
