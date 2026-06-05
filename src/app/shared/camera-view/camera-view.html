@@ -1,0 +1,41 @@
+<div class="camera-container">
+
+  @if(camera.error()) {
+  <div class="error">
+    {{ camera.error() }}
+  </div>
+  }
+
+  @if(opencv.error()) {
+  <div class="error">
+    {{ opencv.error() }}
+  </div>
+  }
+
+  <div class="toolbar">
+
+    <select
+      (change)="changeCamera($event)"
+    >
+      @for(
+      device of camera.devices();
+      track device.id
+      ) {
+      <option
+        [value]="device.id"
+      >
+        {{ device.label }}
+      </option>
+      }
+    </select>
+
+  </div>
+
+  <video
+    #video
+    autoplay
+    muted
+    playsinline
+  ></video>
+
+</div>

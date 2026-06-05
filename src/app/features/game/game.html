@@ -1,0 +1,8 @@
+<div class="camera-wrapper">
+  <app-camera-view></app-camera-view>
+
+  <app-board-overlay
+    [board]="boardDetection.board()"
+    [darts]="detectedDarts()"
+  ></app-board-overlay>
+</div>
