@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  OnDestroy,
   ViewChild,
   effect,
   inject,
@@ -17,11 +18,11 @@ import { OpenCvService } from '../../core/services/open-cv';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './camera-view.html',
-  styleUrls: ['./camera-view.scss'],
+  styleUrl: './camera-view.scss',
 })
 export class CameraView
-  implements AfterViewInit
-{
+  implements AfterViewInit, OnDestroy {
+
   private readonly cameraService =
     inject(CameraService);
 
@@ -34,11 +35,13 @@ export class CameraView
   readonly camera =
     this.cameraService;
 
-  readonly opencv =
+  readonly openCv =
     this.openCvService;
 
   constructor() {
+
     effect(() => {
+
       const stream =
         this.camera.stream();
 
@@ -46,6 +49,7 @@ export class CameraView
         stream &&
         this.videoRef
       ) {
+
         this.videoRef.nativeElement.srcObject =
           stream;
       }
@@ -53,19 +57,33 @@ export class CameraView
   }
 
   async ngAfterViewInit(): Promise<void> {
+
     await this.openCvService.initialize();
 
     await this.cameraService.start();
+
+    const video =
+      this.videoRef.nativeElement;
+
+    this.cameraService.registerVideoElement(
+      video
+    );
+
+    video.onloadedmetadata =
+      () => {
+
+        console.log(
+          'Video bereit:',
+          video.videoWidth,
+          video.videoHeight
+        );
+      };
+
+    await this.cameraService.loadDevices();
   }
 
-  async changeCamera(
-    event: Event
-  ): Promise<void> {
-    const select =
-      event.target as HTMLSelectElement;
+  ngOnDestroy(): void {
 
-    await this.cameraService.switchCamera(
-      select.value
-    );
+    this.cameraService.stop();
   }
 }

@@ -1,1 +1,88 @@
-<p>settings works!</p>
+<div class="settings-page">
+
+  <h1>Einstellungen</h1>
+
+  <div class="setting-group">
+
+    <label>Kamera</label>
+
+    <select
+      [value]="settings().cameraId ?? ''"
+      (change)="onCameraChange($event)"
+    >
+      <option value="">
+        Kamera auswählen
+      </option>
+
+      @for (
+      camera of cameras();
+      track camera.id
+      ) {
+      <option
+        [value]="camera.id"
+      >
+        {{ camera.label }}
+      </option>
+      }
+    </select>
+
+  </div>
+
+  <div class="setting-group">
+
+    <label>Auflösung</label>
+
+    <select
+      [value]="settings().resolution"
+      (change)="onResolutionChange($event)"
+    >
+
+      @for (
+      resolution of resolutions;
+      track resolution
+      ) {
+      <option
+        [value]="resolution"
+      >
+        {{ resolution }}
+      </option>
+      }
+
+    </select>
+
+  </div>
+
+  <div class="setting-group">
+
+    <label>
+
+      <input
+        type="checkbox"
+        [checked]="settings().debugMode"
+        (change)="onDebugChange($event)"
+      />
+
+      Debugmodus
+
+    </label>
+
+  </div>
+
+  <div class="setting-group">
+
+    <label>
+      Empfindlichkeit:
+      {{ settings().detectionSensitivity }}
+    </label>
+
+    <input
+      type="range"
+      min="1"
+      max="100"
+      [value]="settings().detectionSensitivity"
+      (input)="onSensitivityChange($event)"
+    />
+
+  </div>
+
+</div>

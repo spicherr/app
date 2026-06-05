@@ -2,13 +2,23 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  effect,
-  input,
   ViewChild,
+  effect,
+  inject,
+  input,
 } from '@angular/core';
 
-import { DartBoard } from '../../core/models/dart-board.model';
-import { Dart } from '../../core/models/dart.model';
+import { CameraService } from '../../core/services/camera';
+import { DartBoard } from '../../core/services/board-detection';
+
+export interface Dart {
+  id: string;
+
+  tipX: number;
+  tipY: number;
+
+  confidence: number;
+}
 
 @Component({
   selector: 'app-board-overlay',
@@ -17,8 +27,11 @@ import { Dart } from '../../core/models/dart.model';
   styleUrl: './board-overlay.scss',
 })
 export class BoardOverlay
-  implements AfterViewInit
-{
+  implements AfterViewInit {
+
+  private readonly cameraService =
+    inject(CameraService);
+
   readonly board =
     input<DartBoard | null>(null);
 
@@ -26,35 +39,60 @@ export class BoardOverlay
     input<Dart[]>([]);
 
   readonly debug =
-    input<boolean>(true);
+    input(false);
 
-  @ViewChild('overlay')
+  @ViewChild('canvas')
   canvasRef!: ElementRef<HTMLCanvasElement>;
 
-  private ctx!: CanvasRenderingContext2D;
+  private ctx?: CanvasRenderingContext2D;
 
   constructor() {
+
     effect(() => {
+
       this.redraw();
+
     });
   }
 
   ngAfterViewInit(): void {
-    const ctx =
-      this.canvasRef.nativeElement.getContext(
-        '2d'
-      );
 
-    if (!ctx) {
-      return;
-    }
+    this.ctx =
+      this.canvasRef
+        .nativeElement
+        .getContext('2d') ?? undefined;
 
-    this.ctx = ctx;
+    this.resizeCanvas();
+
+    window.addEventListener(
+      'resize',
+      () => this.resizeCanvas()
+    );
 
     this.redraw();
   }
 
+  private resizeCanvas(): void {
+
+    const video =
+      this.cameraService.getVideoElement();
+
+    if (!video) {
+      return;
+    }
+
+    const canvas =
+      this.canvasRef.nativeElement;
+
+    canvas.width =
+      video.videoWidth;
+
+    canvas.height =
+      video.videoHeight;
+  }
+
   private redraw(): void {
+
     if (!this.ctx) {
       return;
     }
@@ -69,7 +107,8 @@ export class BoardOverlay
       canvas.height
     );
 
-    const board = this.board();
+    const board =
+      this.board();
 
     if (!board) {
       return;
@@ -77,7 +116,12 @@ export class BoardOverlay
 
     this.drawBoard(board);
 
-    this.drawSegments(board);
+    if (this.debug()) {
+
+      this.drawSegments(board);
+
+      this.drawDebugInfo(board);
+    }
 
     this.drawDarts();
   }
@@ -85,6 +129,11 @@ export class BoardOverlay
   private drawBoard(
     board: DartBoard
   ): void {
+
+    if (!this.ctx) {
+      return;
+    }
+
     this.ctx.beginPath();
 
     this.ctx.arc(
@@ -98,7 +147,7 @@ export class BoardOverlay
     this.ctx.strokeStyle =
       '#00ff00';
 
-    this.ctx.lineWidth = 3;
+    this.ctx.lineWidth = 4;
 
     this.ctx.stroke();
 
@@ -107,7 +156,7 @@ export class BoardOverlay
     this.ctx.arc(
       board.centerX,
       board.centerY,
-      5,
+      6,
       0,
       Math.PI * 2
     );
@@ -121,14 +170,20 @@ export class BoardOverlay
   private drawSegments(
     board: DartBoard
   ): void {
+
+    if (!this.ctx) {
+      return;
+    }
+
     for (
       let i = 0;
       i < 20;
       i++
     ) {
+
       const angle =
         ((i * 18) - 90) *
-        (Math.PI / 180);
+        Math.PI / 180;
 
       const x =
         board.centerX +
@@ -147,10 +202,13 @@ export class BoardOverlay
         board.centerY
       );
 
-      this.ctx.lineTo(x, y);
+      this.ctx.lineTo(
+        x,
+        y
+      );
 
       this.ctx.strokeStyle =
-        'rgba(255,255,255,.2)';
+        'rgba(255,255,255,.3)';
 
       this.ctx.lineWidth = 1;
 
@@ -159,7 +217,15 @@ export class BoardOverlay
   }
 
   private drawDarts(): void {
-    for (const dart of this.darts()) {
+
+    if (!this.ctx) {
+      return;
+    }
+
+    for (
+      const dart of this.darts()
+      ) {
+
       this.ctx.beginPath();
 
       this.ctx.arc(
@@ -175,5 +241,44 @@ export class BoardOverlay
 
       this.ctx.fill();
     }
+  }
+
+  private drawDebugInfo(
+    board: DartBoard
+  ): void {
+
+    if (!this.ctx) {
+      return;
+    }
+
+    this.ctx.fillStyle =
+      '#00ff00';
+
+    this.ctx.font =
+      '18px monospace';
+
+    this.ctx.fillText(
+      `X ${board.centerX.toFixed(0)}`,
+      20,
+      30
+    );
+
+    this.ctx.fillText(
+      `Y ${board.centerY.toFixed(0)}`,
+      20,
+      55
+    );
+
+    this.ctx.fillText(
+      `R ${board.radius.toFixed(0)}`,
+      20,
+      80
+    );
+
+    this.ctx.fillText(
+      `C ${board.confidence.toFixed(2)}`,
+      20,
+      105
+    );
   }
 }

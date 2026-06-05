@@ -1,8 +1,39 @@
-<div class="camera-wrapper">
-  <app-camera-view></app-camera-view>
+<div class="game-container">
 
-  <app-board-overlay
-    [board]="boardDetection.board()"
-    [darts]="detectedDarts()"
-  ></app-board-overlay>
+  <div class="camera-wrapper">
+
+    <app-camera-view></app-camera-view>
+
+    <app-board-overlay [board]="board()" [darts]="darts()" [debug]="debugMode()"></app-board-overlay>
+
+  </div>
+
+  @if (board()) {
+
+  <div class="board-info">
+
+    <div>
+      X:
+      {{ board()!.centerX.toFixed(0) }}
+    </div>
+
+    <div>
+      Y:
+      {{ board()!.centerY.toFixed(0) }}
+    </div>
+
+    <div>
+      Radius:
+      {{ board()!.radius.toFixed(0) }}
+    </div>
+
+    <div>
+      Confidence:
+      {{ board()!.confidence.toFixed(2) }}
+    </div>
+
+  </div>
+
+  }
+
 </div>

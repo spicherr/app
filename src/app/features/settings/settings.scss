@@ -1,0 +1,27 @@
+:host {
+  display: block;
+  padding: 2rem;
+}
+
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  max-width: 600px;
+}
+
+.setting-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+label {
+  font-weight: 600;
+}
+
+select,
+input[type="range"] {
+  width: 100%;
+}

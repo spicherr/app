@@ -1,3 +1,24 @@
+:host {
+  display: block;
+
+  width: 100vw;
+  height: 100vh;
+}
+
 .camera-wrapper {
   position: relative;
+
+  width: 100%;
+  max-width: 1280px;
+
+  margin: 0 auto;
+}
+
+app-camera-view {
+  display: block;
+}
+
+app-board-overlay {
+  position: absolute;
+  inset: 0;
 }
