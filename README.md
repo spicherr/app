@@ -34,7 +34,7 @@ To build the project run:
 ng build
 ```
 ```bash
-ng build --configuration production --base-href "https://spicherr.github.io/app/"
+ng build --configuration production --base-href "/app/"
 ```
 
 
