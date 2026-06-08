@@ -22,11 +22,36 @@ import {
   DartDetectionService,
 } from './dart-detection';
 
+import {
+  DartScore,
+  ScoringService,
+} from './scoring';
+
+import {
+  GameService,
+} from './game';
+
+export interface ScoredDart {
+
+  dart: Dart;
+
+  score: DartScore;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class VisionPipelineService {
+  private readonly maxDartsPerTurn = 3;
 
+  private readonly minDartDistance = 30;
+  private turnFinished(): boolean {
+
+    return (
+      this.scoredDarts().length >=
+      this.maxDartsPerTurn
+    );
+  }
   private readonly cameraService =
     inject(CameraService);
 
@@ -38,6 +63,12 @@ export class VisionPipelineService {
 
   private readonly dartDetection =
     inject(DartDetectionService);
+
+  private readonly scoringService =
+    inject(ScoringService);
+
+  private readonly gameService =
+    inject(GameService);
 
   private pipelineTimer?: number;
 
@@ -53,14 +84,27 @@ export class VisionPipelineService {
   readonly detectedDarts =
     signal<Dart[]>([]);
 
+  readonly scoredDarts =
+    signal<ScoredDart[]>([]);
+
   readonly board =
     this.boardDetection.board;
 
-  readonly ready = computed(
-    () =>
-      this.openCvService.ready() &&
-      this.cameraService.running()
-  );
+  readonly ready =
+    computed(() => {
+
+      const video =
+        this.cameraService
+          .getVideoElement();
+
+      return (
+        this.openCvService.ready() &&
+        this.cameraService.running() &&
+        !!video &&
+        video.videoWidth > 0 &&
+        video.videoHeight > 0
+      );
+    });
 
   async start(): Promise<void> {
 
@@ -68,19 +112,37 @@ export class VisionPipelineService {
       return;
     }
 
-    await this.waitUntilReady();
+    try {
 
-    this.running.set(true);
+      this.error.set(null);
 
-    this.pipelineTimer =
-      window.setInterval(
-        () => {
+      await this.waitUntilReady();
 
-          this.processFrame();
-
-        },
-        250
+      console.log(
+        'Vision Pipeline gestartet'
       );
+
+      this.running.set(true);
+
+      this.pipelineTimer =
+        window.setInterval(
+          () => {
+
+            this.processFrame();
+
+          },
+          250
+        );
+
+    } catch (error: any) {
+
+      console.error(error);
+
+      this.error.set(
+        error?.message ??
+        'Vision Pipeline konnte nicht gestartet werden.'
+      );
+    }
   }
 
   stop(): void {
@@ -96,16 +158,51 @@ export class VisionPipelineService {
     }
 
     this.running.set(false);
+
+    this.previousFrame =
+      null;
   }
 
-  clearDarts(): void {
+  clear(): void {
 
     this.detectedDarts.set([]);
 
+    this.scoredDarts.set([]);
+
+    this.previousFrame =
+      null;
+
+    this.error.set(
+      null
+    );
+
     this.dartDetection.clear();
   }
+  startNextTurn(): void {
 
+    this.clear();
+
+    if (
+      !this.running()
+    ) {
+
+      this.start();
+    }
+  }
   private processFrame(): void {
+
+    if (
+      this.turnFinished()
+    ) {
+
+      console.log(
+        '3 Darts erkannt - Detection gestoppt'
+      );
+
+      this.stop();
+
+      return;
+    }
 
     try {
 
@@ -136,18 +233,113 @@ export class VisionPipelineService {
             currentFrame
           );
 
+      console.log(
+        'Raw Darts:',
+        newDarts.map(
+          dart => ({
+            x: Math.round(
+              dart.tipX
+            ),
+            y: Math.round(
+              dart.tipY
+            ),
+            confidence:
+            dart.confidence,
+          })
+        )
+      );
+
       if (
-        newDarts.length > 0
+        newDarts.length === 0
       ) {
 
-        const merged =
-          this.mergeDarts(
-            this.detectedDarts(),
-            newDarts
+        this.previousFrame =
+          currentFrame;
+
+        return;
+      }
+
+      const uniqueDarts =
+        this.filterNewDarts(
+          newDarts
+        );
+
+      if (
+        uniqueDarts.length === 0
+      ) {
+
+        this.previousFrame =
+          currentFrame;
+
+        return;
+      }
+
+      this.detectedDarts.update(
+        darts => [
+          ...darts,
+          ...uniqueDarts,
+        ]
+      );
+
+      const board =
+        this.board();
+
+      if (board) {
+
+        const scored =
+          [...this.scoredDarts()];
+
+        for (
+          const dart of uniqueDarts
+          ) {
+
+          if (
+            scored.length >=
+            this.maxDartsPerTurn
+          ) {
+
+            break;
+          }
+
+          const result =
+            this.scoringService
+              .calculateScore(
+                board,
+                dart
+              );
+
+          scored.push({
+
+            dart,
+
+            score: result,
+          });
+
+          this.gameService.addThrow(
+            result.score
           );
 
-        this.detectedDarts.set(
-          merged
+          console.log(
+            'Dart erkannt:',
+            {
+              x: Math.round(
+                dart.tipX
+              ),
+              y: Math.round(
+                dart.tipY
+              ),
+              score:
+              result.score,
+              segment:
+              result.segment,
+              multiplier:
+              result.multiplier,
+            }
+          );
+        }
+
+        this.scoredDarts.set(
+          scored
         );
       }
 
@@ -164,20 +356,17 @@ export class VisionPipelineService {
     }
   }
 
-  private mergeDarts(
-    existing: Dart[],
+  private filterNewDarts(
     incoming: Dart[]
   ): Dart[] {
 
-    const result =
-      [...existing];
+    const existing =
+      this.detectedDarts();
 
-    for (
-      const dart of incoming
-      ) {
+    return incoming.filter(
+      dart => {
 
-      const alreadyExists =
-        existing.some(
+        return !existing.some(
           existingDart => {
 
             const dx =
@@ -188,26 +377,20 @@ export class VisionPipelineService {
               existingDart.tipY -
               dart.tipY;
 
-            return (
+            const distance =
               Math.sqrt(
                 dx * dx +
                 dy * dy
-              ) < 20
+              );
+
+            return (
+              distance <
+              this.minDartDistance
             );
           }
         );
-
-      if (
-        !alreadyExists
-      ) {
-
-        result.push(
-          dart
-        );
       }
-    }
-
-    return result;
+    );
   }
 
   private async waitUntilReady():
@@ -219,20 +402,13 @@ export class VisionPipelineService {
       attempts < 150
       ) {
 
-      const video =
-        this.cameraService
-          .getVideoElement();
-
-      const videoReady =
-        !!video &&
-        video.videoWidth > 0 &&
-        video.videoHeight > 0;
-
       if (
-        this.openCvService.ready() &&
-        this.cameraService.running() &&
-        videoReady
+        this.ready()
       ) {
+
+        console.log(
+          'Vision Pipeline bereit'
+        );
 
         return;
       }
@@ -248,8 +424,79 @@ export class VisionPipelineService {
       );
     }
 
+    const video =
+      this.cameraService
+        .getVideoElement();
+
+    if (
+      !this.openCvService.ready()
+    ) {
+
+      throw new Error(
+        'OpenCV ist nicht bereit.'
+      );
+    }
+
+    if (
+      !this.cameraService.running()
+    ) {
+
+      const cameraError =
+        this.cameraService.error();
+
+      throw new Error(
+        cameraError ??
+        'Kamera wurde nicht gestartet.'
+      );
+    }
+
+    if (!video) {
+
+      throw new Error(
+        'Videoelement wurde nicht registriert.'
+      );
+    }
+
+    if (
+      video.videoWidth === 0 ||
+      video.videoHeight === 0
+    ) {
+
+      throw new Error(
+        'Videostream liefert noch keine Bilddaten.'
+      );
+    }
+
     throw new Error(
-      'Vision Pipeline Timeout'
+      'Vision Pipeline Timeout.'
     );
+  }
+
+  getTotalScore(): number {
+
+    return this.scoredDarts()
+      .reduce(
+        (
+          total,
+          dart
+        ) =>
+          total +
+          dart.score.score,
+        0
+      );
+  }
+
+  getLastThrow():
+    | ScoredDart
+    | null {
+
+    const darts =
+      this.scoredDarts();
+
+    return darts.length
+      ? darts[
+      darts.length - 1
+        ]
+      : null;
   }
 }

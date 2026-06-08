@@ -1,10 +1,38 @@
 <div class="camera-container">
+  <select
+    #cameraSelect
+    (change)="changeCamera(cameraSelect.value)"
+  >
+
+    @for (
+    device of camera.devices();
+    track device.id
+    ) {
+
+    <option
+      [value]="device.id"
+    >
+      {{ device.label }}
+    </option>
+
+    }
+
+  </select>
+  @if (camera.error()) {
+
+  <div class="camera-error">
+    {{ camera.error() }}
+  </div>
+
+  } @else {
 
   <video
     #video
     autoplay
     muted
-    playsinline
-  ></video>
+    playsinline>
+  </video>
+
+  }
 
 </div>

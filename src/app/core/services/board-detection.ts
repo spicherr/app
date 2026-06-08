@@ -239,7 +239,7 @@ export class BoardDetectionService {
         minRadius,
         maxRadius
       );
-      console.log('circles cols',circles.cols);
+
       if (
         !circles ||
         circles.cols === 0

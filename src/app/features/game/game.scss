@@ -22,3 +22,98 @@ app-board-overlay {
   position: absolute;
   inset: 0;
 }
+
+.debug-score-panel{
+  width: 200px;
+  }
+.actions {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 1rem;
+
+  margin-top: 1rem;
+}
+.action button {
+  width: 90%;
+  }
+
+.throw-panel {
+
+  margin: 5px;
+
+  border: 2px solid #444;
+
+  background: white;
+}
+
+.throw-total {
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  height: 80px;
+
+  font-size: 50px;
+  font-weight: 700;
+
+  border-bottom: 2px solid #444;
+}
+
+.throw-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+}
+
+.throw-cell {
+
+  border-right: 1px solid #bbb;
+
+  &:last-child {
+
+    border-right: none;
+  }
+}
+
+.throw-score {
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  height: 30px;
+
+  font-size: 15px;
+  font-weight: 300;
+
+  border-bottom: 1px solid #bbb;
+}
+
+.throw-segment {
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  height: 15px;
+
+  font-size: 12px;
+
+  font-style: italic;
+}
+
+.empty {
+
+  opacity: 0.3;
+}

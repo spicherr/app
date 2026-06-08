@@ -1,1 +1,43 @@
-<app-game></app-game>
+<div class="dashboard">
+
+  <h1>DC Sensetal</h1>
+
+  <div class="actions">
+
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="start501()">
+
+      Neues 501 Spiel
+
+    </button>
+
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="start301()">
+
+      Neues 301 Spiel
+
+    </button>
+
+    <button
+      mat-stroked-button
+      routerLink="/calibration">
+
+      Kalibrierung
+
+    </button>
+
+    <button
+      mat-stroked-button
+      routerLink="/settings">
+
+      Einstellungen
+
+    </button>
+
+  </div>
+
+</div>
