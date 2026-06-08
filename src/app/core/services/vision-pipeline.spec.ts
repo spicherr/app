@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { Vision } from './vision';
+import { VisionPipeline } from './vision-pipeline';
 
-describe('Vision', () => {
-  let service: Vision;
+describe('VisionPipeline', () => {
+  let service: VisionPipeline;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(Vision);
+    service = TestBed.inject(VisionPipeline);
   });
 
   it('should be created', () => {
