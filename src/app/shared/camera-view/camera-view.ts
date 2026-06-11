@@ -4,11 +4,16 @@ import {
   ElementRef,
   OnDestroy,
   ViewChild,
-  effect,
   inject,
 } from '@angular/core';
 
-import { CommonModule } from '@angular/common';
+import {
+  CommonModule,
+} from '@angular/common';
+
+import {
+  MatButtonModule,
+} from '@angular/material/button';
 
 import {
   CameraService,
@@ -23,6 +28,7 @@ import {
   standalone: true,
   imports: [
     CommonModule,
+    MatButtonModule,
   ],
   templateUrl: './camera-view.html',
   styleUrl: './camera-view.scss',
@@ -45,29 +51,19 @@ export class CameraView
   readonly openCv =
     this.openCvService;
 
-  constructor() {
-
-    effect(() => {
-
-      const stream =
-        this.camera.stream();
-
-      if (
-        stream &&
-        this.videoRef
-      ) {
-
-        this.videoRef
-          .nativeElement
-          .srcObject = stream;
-      }
-    });
-  }
-
   async ngAfterViewInit():
     Promise<void> {
 
     try {
+
+      const video =
+        this.videoRef
+          .nativeElement;
+
+      this.cameraService
+        .registerVideoElement(
+          video
+        );
 
       await this.openCvService
         .initialize();
@@ -91,67 +87,9 @@ export class CameraView
       await this.cameraService
         .start();
 
-      const video =
-        this.videoRef
-          .nativeElement;
+    } catch (error) {
 
-      this.cameraService
-        .registerVideoElement(
-          video
-        );
-
-      video.onloadedmetadata =
-        () => {
-
-          console.log(
-            'Video bereit:',
-            video.videoWidth,
-            video.videoHeight
-          );
-        };
-
-    } catch (error: any) {
-
-      console.error(
-        'CameraView Fehler',
-        error
-      );
-
-      if (
-        error?.name ===
-        'NotFoundError'
-      ) {
-
-        this.cameraService.error.set(
-          'Die ausgewählte Kamera wurde nicht gefunden.'
-        );
-
-        return;
-      }
-
-      if (
-        error?.name ===
-        'NotAllowedError'
-      ) {
-
-        this.cameraService.error.set(
-          'Der Kamerazugriff wurde verweigert.'
-        );
-
-        return;
-      }
-
-      if (
-        error?.name ===
-        'NotReadableError'
-      ) {
-
-        this.cameraService.error.set(
-          'Die Kamera wird bereits von einer anderen Anwendung verwendet.'
-        );
-
-        return;
-      }
+      console.error(error);
 
       this.cameraService.error.set(
         'Kamera konnte nicht gestartet werden.'
@@ -163,15 +101,35 @@ export class CameraView
 
     this.cameraService.stop();
   }
+
+  async reloadCamera():
+    Promise<void> {
+
+    try {
+
+      this.cameraService.error.set(
+        null
+      );
+
+      await this.cameraService
+        .start();
+
+    } catch (error) {
+
+      console.error(error);
+    }
+  }
+
   async changeCamera(
     deviceId: string
   ): Promise<void> {
 
     try {
 
-      await this.cameraService.switchCamera(
-        deviceId
-      );
+      await this.cameraService
+        .switchCamera(
+          deviceId
+        );
 
     } catch (error) {
 

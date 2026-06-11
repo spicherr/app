@@ -8,13 +8,20 @@ import {
   input,
 } from '@angular/core';
 
-import { CameraService } from '../../core/services/camera';
-import { DartBoard } from '../../core/services/board-detection';
+import {
+  CameraService,
+} from '../../core/services/camera';
+
+import {
+  DartBoard,
+} from '../../core/services/board-detection';
 
 export interface Dart {
+
   id: string;
 
   tipX: number;
+
   tipY: number;
 
   confidence: number;
@@ -28,12 +35,15 @@ export interface Dart {
 })
 export class BoardOverlay
   implements AfterViewInit {
-
+  readonly showBoardGrid =
+    input(true);
   private readonly cameraService =
     inject(CameraService);
 
   readonly board =
-    input<DartBoard | null>(null);
+    input<DartBoard | null>(
+      null
+    );
 
   readonly darts =
     input<Dart[]>([]);
@@ -44,7 +54,8 @@ export class BoardOverlay
   @ViewChild('canvas')
   canvasRef!: ElementRef<HTMLCanvasElement>;
 
-  private ctx?: CanvasRenderingContext2D;
+  private ctx?:
+    CanvasRenderingContext2D;
 
   constructor() {
 
@@ -60,7 +71,8 @@ export class BoardOverlay
     this.ctx =
       this.canvasRef
         .nativeElement
-        .getContext('2d') ?? undefined;
+        .getContext('2d') ??
+      undefined;
 
     this.resizeCanvas();
 
@@ -73,16 +85,18 @@ export class BoardOverlay
   }
 
   private resizeCanvas(): void {
-
+    console.log("resizeCanvas")
     const video =
-      this.cameraService.getVideoElement();
+      this.cameraService
+        .getVideoElement();
 
     if (!video) {
       return;
     }
 
     const canvas =
-      this.canvasRef.nativeElement;
+      this.canvasRef
+        .nativeElement;
 
     canvas.width =
       video.videoWidth;
@@ -92,13 +106,14 @@ export class BoardOverlay
   }
 
   private redraw(): void {
-
+    console.log("Redraw");
     if (!this.ctx) {
       return;
     }
 
     const canvas =
-      this.canvasRef.nativeElement;
+      this.canvasRef
+        .nativeElement;
 
     this.ctx.clearRect(
       0,
@@ -116,11 +131,17 @@ export class BoardOverlay
 
     this.drawBoard(board);
 
-    if (this.debug()) {
+    if (
+      this.showBoardGrid()
+    ) {
 
-      this.drawSegments(board);
+      this.drawSegments(
+        board
+      );
 
-      this.drawDebugInfo(board);
+      this.drawDebugInfo(
+        board
+      );
     }
 
     this.drawDarts();
@@ -129,11 +150,17 @@ export class BoardOverlay
   private drawBoard(
     board: DartBoard
   ): void {
+    console.log("drawBoard");
 
     if (!this.ctx) {
       return;
     }
 
+    this.ctx.save();
+
+    /**
+     * Board-Kreis
+     */
     this.ctx.beginPath();
 
     this.ctx.arc(
@@ -151,6 +178,9 @@ export class BoardOverlay
 
     this.ctx.stroke();
 
+    /**
+     * Mittelpunkt
+     */
     this.ctx.beginPath();
 
     this.ctx.arc(
@@ -165,15 +195,36 @@ export class BoardOverlay
       '#ff0000';
 
     this.ctx.fill();
+
+    if (
+      this.debug()
+    ) {
+
+      this.ctx.fillStyle =
+        '#00ff00';
+
+      this.ctx.font =
+        '14px monospace';
+
+      this.ctx.fillText(
+        'CENTER',
+        board.centerX + 12,
+        board.centerY - 12
+      );
+    }
+
+    this.ctx.restore();
   }
 
   private drawSegments(
     board: DartBoard
   ): void {
-
+    console.log("drawSegments");
     if (!this.ctx) {
       return;
     }
+
+    this.ctx.save();
 
     for (
       let i = 0;
@@ -183,7 +234,8 @@ export class BoardOverlay
 
       const angle =
         ((i * 18) - 90) *
-        Math.PI / 180;
+        Math.PI /
+        180;
 
       const x =
         board.centerX +
@@ -208,19 +260,23 @@ export class BoardOverlay
       );
 
       this.ctx.strokeStyle =
-        'rgba(255,255,255,.3)';
+        '#00cc66';
 
       this.ctx.lineWidth = 1;
 
       this.ctx.stroke();
     }
+
+    this.ctx.restore();
   }
 
   private drawDarts(): void {
-
+    console.log("drawDarts");
     if (!this.ctx) {
       return;
     }
+
+    this.ctx.save();
 
     for (
       const dart of this.darts()
@@ -240,45 +296,107 @@ export class BoardOverlay
         '#00ffff';
 
       this.ctx.fill();
+
+      if (
+        this.debug()
+      ) {
+
+        this.ctx.fillStyle =
+          '#ffffff';
+
+        this.ctx.font =
+          '12px monospace';
+
+        this.ctx.fillText(
+          `${Math.round(
+            dart.tipX
+          )},${Math.round(
+            dart.tipY
+          )}`,
+          dart.tipX + 12,
+          dart.tipY
+        );
+      }
     }
+
+    this.ctx.restore();
   }
 
   private drawDebugInfo(
     board: DartBoard
   ): void {
-
+    console.log("drawDebugInfo");
     if (!this.ctx) {
       return;
     }
 
-    this.ctx.fillStyle =
-      '#00ff00';
+    const ctx =
+      this.ctx;
 
-    this.ctx.font =
-      '18px monospace';
+    const lines = [
 
-    this.ctx.fillText(
-      `X ${board.centerX.toFixed(0)}`,
-      20,
-      30
+      `X: ${board.centerX.toFixed(0)}`,
+
+      `Y: ${board.centerY.toFixed(0)}`,
+
+      `Radius: ${board.radius.toFixed(0)}`,
+
+      `Confidence: ${board.confidence.toFixed(2)}`,
+
+      `Darts: ${this.darts().length}`,
+    ];
+
+    const padding = 10;
+
+    const lineHeight = 20;
+
+    const width = 220;
+
+    const height =
+      lines.length *
+      lineHeight +
+      padding * 2;
+
+    ctx.save();
+
+    /**
+     * Hintergrund
+     */
+    ctx.fillStyle =
+      'rgba(0,0,0,0.75)';
+
+    ctx.fillRect(
+      10,
+      10,
+      width,
+      height
     );
 
-    this.ctx.fillText(
-      `Y ${board.centerY.toFixed(0)}`,
-      20,
-      55
+    /**
+     * Text
+     */
+    ctx.font =
+      '14px monospace';
+
+    ctx.fillStyle =
+      '#ffffff';
+
+    lines.forEach(
+      (
+        line,
+        index
+      ) => {
+
+        ctx.fillText(
+          line,
+          20,
+          30 +
+          index *
+          lineHeight
+        );
+      }
     );
 
-    this.ctx.fillText(
-      `R ${board.radius.toFixed(0)}`,
-      20,
-      80
-    );
-
-    this.ctx.fillText(
-      `C ${board.confidence.toFixed(2)}`,
-      20,
-      105
-    );
+    ctx.restore();
   }
 }

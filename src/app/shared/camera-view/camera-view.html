@@ -22,6 +22,14 @@
 
   <div class="camera-error">
     {{ camera.error() }}
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="reloadCamera()">
+
+      Erneut versuchen
+
+    </button>
   </div>
 
   } @else {

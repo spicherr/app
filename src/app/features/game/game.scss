@@ -1,17 +1,22 @@
 :host {
   display: block;
 
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
 }
+.game-container{
+ display: grid;
+  gap: 5px;
+  margin: 10px;
+  }
+.board-area {
 
-.camera-wrapper {
   position: relative;
 
-  width: 100%;
-  max-width: 1280px;
+  min-height: 200px;
 
-  margin: 0 auto;
+  overflow: hidden;
+  background: #000000;
 }
 
 app-camera-view {
@@ -23,76 +28,55 @@ app-board-overlay {
   inset: 0;
 }
 
-.debug-score-panel{
-  width: 200px;
-  }
-.actions {
-
+.score-area {
   display: flex;
-
   flex-direction: column;
-
+  gap: 5px;
+}
+.actions {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-
   gap: 1rem;
-
   margin-top: 1rem;
 }
 .action button {
-  width: 90%;
+  width: 100%;
   }
 
 .throw-panel {
-
   margin: 5px;
-
   border: 2px solid #444;
-
   background: white;
 }
 
 .throw-total {
-
   display: flex;
-
   justify-content: center;
   align-items: center;
-
   height: 80px;
-
   font-size: 50px;
   font-weight: 700;
-
   border-bottom: 2px solid #444;
 }
 
 .throw-grid {
-
   display: grid;
-
-  grid-template-columns:
-    repeat(3, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .throw-cell {
-
   border-right: 1px solid #bbb;
-
   &:last-child {
-
     border-right: none;
   }
 }
 
 .throw-score {
-
   display: flex;
-
   justify-content: center;
   align-items: center;
-
   height: 30px;
-
   font-size: 15px;
   font-weight: 300;
 
@@ -100,16 +84,11 @@ app-board-overlay {
 }
 
 .throw-segment {
-
   display: flex;
-
   justify-content: center;
   align-items: center;
-
   height: 15px;
-
   font-size: 12px;
-
   font-style: italic;
 }
 

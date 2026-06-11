@@ -1,4 +1,9 @@
-<canvas
-  #canvas
-  class="overlay"
-></canvas>
+<canvas #canvas class="overlay"></canvas>
+@if (debug() && board()) {
+<div class="debug-panel">
+  X: {{ board()!.centerX.toFixed(0) }} |
+  Y: {{ board()!.centerY.toFixed(0) }} |
+  Radius: {{ board()!.radius.toFixed(0) }} |
+  Confidence: {{ board()!.confidence.toFixed(2) }}
+</div>
+}

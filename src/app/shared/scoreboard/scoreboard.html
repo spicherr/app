@@ -1,1 +1,78 @@
-<p>scoreboard works!</p>
+<div class="scoreboard">
+
+  <div class="header">
+
+    <div>
+      Spieler
+    </div>
+
+    <div>
+      Rest
+    </div>
+
+    <div>
+      Avg
+    </div>
+
+    <div>
+      Checkout
+    </div>
+
+  </div>
+
+  @for (
+  player of players();
+  track player.id
+  ) {
+
+  <div
+    class="player-row"
+    [class.active]="
+        player.isCurrentPlayer
+      "
+  >
+
+    <div
+      class="player-name"
+    >
+
+      {{ player.name }}
+
+    </div>
+
+    <div
+      class="remaining-score"
+    >
+
+      {{
+      player.remainingScore
+      }}
+
+    </div>
+
+    <div
+      class="average"
+    >
+
+      {{
+      player.average
+      .toFixed(2)
+      }}
+
+    </div>
+
+    <div
+      class="checkout"
+    >
+
+      {{
+      player.checkout
+      }}
+
+    </div>
+
+  </div>
+
+  }
+
+</div>

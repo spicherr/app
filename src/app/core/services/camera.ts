@@ -16,7 +16,8 @@ export interface CameraDevice {
   providedIn: 'root',
 })
 export class CameraService {
-
+  readonly videoReady =
+    signal(false);
   private readonly settingsService =
     inject(SettingsService);
 
@@ -44,7 +45,27 @@ export class CameraService {
   registerVideoElement(
     video: HTMLVideoElement
   ): void {
-    this.videoElement = video;
+
+    this.videoElement =
+      video;
+
+    this.videoReady.set(
+      false
+    );
+
+    video.onloadeddata =
+      () => {
+
+        console.log(
+          'Video bereit:',
+          video.videoWidth,
+          video.videoHeight
+        );
+
+        this.videoReady.set(
+          true
+        );
+      };
   }
 
   getVideoElement():
@@ -131,7 +152,49 @@ export class CameraService {
         });
 
       this.stream.set(stream);
+      if (
+        this.videoElement
+      ) {
 
+        this.videoReady.set(
+          false
+        );
+
+        this.videoElement.srcObject =
+          stream;
+
+        await this.videoElement.play();
+
+        await new Promise<void>(
+          resolve => {
+
+            const check =
+              () => {
+
+                if (
+                  this.videoElement &&
+                  this.videoElement.videoWidth > 0 &&
+                  this.videoElement.videoHeight > 0
+                ) {
+
+                  this.videoReady.set(
+                    true
+                  );
+
+                  resolve();
+
+                  return;
+                }
+
+                requestAnimationFrame(
+                  check
+                );
+              };
+
+            check();
+          }
+        );
+      }
       const track =
         stream.getVideoTracks()[0];
 
@@ -167,17 +230,32 @@ export class CameraService {
     const current =
       this.stream();
 
-    if (!current) {
-      return;
+    if (current) {
+
+      current
+        .getTracks()
+        .forEach(track =>
+          track.stop()
+        );
     }
 
-    current
-      .getTracks()
-      .forEach(track =>
-        track.stop()
-      );
+    if (
+      this.videoElement
+    ) {
 
-    this.stream.set(null);
+      this.videoElement.pause();
+
+      this.videoElement.srcObject =
+        null;
+    }
+
+    this.stream.set(
+      null
+    );
+
+    this.videoReady.set(
+      false
+    );
   }
 
   async restart(): Promise<void> {

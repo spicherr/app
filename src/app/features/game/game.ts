@@ -3,7 +3,7 @@ import {
   Component,
   DestroyRef,
   computed,
-  inject,
+  inject, signal,
 } from '@angular/core';
 import {MatChipsModule} from '@angular/material/chips';
 import { CameraView } from '../../shared/camera-view/camera-view';
@@ -21,6 +21,7 @@ import {
   DartScore,
 } from '../../core/services/scoring';
 import {MatBadgeModule} from '@angular/material/badge';
+import {Scoreboard} from '../../shared/scoreboard/scoreboard';
 
 @Component({
   selector: 'app-game',
@@ -30,13 +31,14 @@ import {MatBadgeModule} from '@angular/material/badge';
     MatBadgeModule,
     CameraView,
     BoardOverlay,
+    Scoreboard
   ],
   templateUrl: './game.html',
   styleUrl: './game.scss',
 })
 export class Game
   implements AfterViewInit {
-
+  readonly showBoardGrid =  true;
   private readonly destroyRef =
     inject(DestroyRef);
 
@@ -214,4 +216,24 @@ export class Game
       )
     ).fill(0);
   }
+
+  readonly scoreboardPlayers =
+    signal([
+      {
+        id: '1',
+        name: 'Roger',
+        remainingScore: 321,
+        average: 67.33,
+        checkout: 'T20 T19 D2',
+        isCurrentPlayer: true,
+      },
+      {
+        id: '2',
+        name: 'Thomas',
+        remainingScore: 501,
+        average: 0,
+        checkout: '-',
+        isCurrentPlayer: false,
+      },
+    ]);
 }

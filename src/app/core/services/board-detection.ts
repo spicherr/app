@@ -22,7 +22,8 @@ declare const cv: any;
   providedIn: 'root',
 })
 export class BoardDetectionService {
-
+  readonly stableBoard =
+    signal<DartBoard | null>(null);
   private readonly cameraService =
     inject(CameraService);
 
@@ -288,13 +289,37 @@ export class BoardDetectionService {
         circles.data32F[
         offset + 2
           ];
-
+      const confidence =
+        Math.min(
+          1,
+          radius /
+          maxRadius
+        );
       const board: DartBoard = {
         centerX,
         centerY,
         radius,
+//      TODO: confidence berechnen lassen
         confidence: 1,
       };
+
+      this.board.set(
+        board
+      );
+      console.log({
+        radius,
+        maxRadius,
+        confidence,
+      });
+//     if (
+//       board.confidence >= 0.8
+//     ) {
+//       this.stableBoard.set(
+//         board
+//       );
+//     }
+//      TODO: reaktiviere board.confidence
+       this.stableBoard.set(board);
 
       return board;
 

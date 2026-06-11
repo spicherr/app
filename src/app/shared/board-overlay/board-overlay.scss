@@ -1,13 +1,28 @@
 :host {
   position: absolute;
   inset: 0;
-
   pointer-events: none;
 }
 
-.overlay {
+canvas {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+}
 
-  pointer-events: none;
+.debug-panel {
+
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 5px;
+  background: #000000;
+  opacity: 0.75;
+  color: white;
+  font-size: 10px;
+  font-family: monospace;
+  text-align: center;
 }

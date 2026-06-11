@@ -1,27 +1,21 @@
 <div class="game-container">
 
-  <div class="camera-wrapper">
-
+  <div class="board-area">
     <app-camera-view></app-camera-view>
-
-    <app-board-overlay [board]="pipeline.board()" [darts]="pipeline.detectedDarts()" [debug]="debugMode()"></app-board-overlay>
+    <br>
+    <app-board-overlay
+      [board]="pipeline.board()"
+      [darts]="pipeline.detectedDarts()"
+      [debug]="debugMode()"
+      [showBoardGrid]="showBoardGrid"
+    ></app-board-overlay>
 
   </div>
-
-  @if (pipeline.board()) {
-
-  <div class="board-info">
-      X: {{ pipeline.board()!.centerX.toFixed(0) }} |
-      Y: {{ pipeline.board()!.centerY.toFixed(0) }} |
-      Radius: {{ pipeline.board()!.radius.toFixed(0) }} |
-      Confidence: {{ pipeline.board()!.confidence.toFixed(2) }}
-  </div>
-
-  }
-
 </div>
+<div class="game-container">
 
-<div class="debug-score-panel">
+
+<div class="score-area">
 
   <h3>Erkannte Würfe</h3>
   <div class="throw-panel">
@@ -101,4 +95,8 @@
     </button>
 
   </div>
+</div>
+</div>
+<div class="game-container">
+<!--<app-scoreboard [players]="scoreboardPlayers()"></app-scoreboard>-->
 </div>

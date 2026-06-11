@@ -88,7 +88,8 @@ export class VisionPipelineService {
     signal<ScoredDart[]>([]);
 
   readonly board =
-    this.boardDetection.board;
+    this.boardDetection
+      .stableBoard;
 
   readonly ready =
     computed(() => {
@@ -131,7 +132,7 @@ export class VisionPipelineService {
             this.processFrame();
 
           },
-          250
+          500
         );
 
     } catch (error: any) {
@@ -225,7 +226,16 @@ export class VisionPipelineService {
 
         return;
       }
+      const board =
+        this.board();
 
+      if (!board) {
+
+        this.previousFrame =
+          currentFrame;
+
+        return;
+      }
       const newDarts =
         this.dartDetection
           .detectNewDarts(
@@ -280,9 +290,6 @@ export class VisionPipelineService {
           ...uniqueDarts,
         ]
       );
-
-      const board =
-        this.board();
 
       if (board) {
 
@@ -451,7 +458,10 @@ export class VisionPipelineService {
     }
 
     if (!video) {
-
+      console.log(
+        'Videoelement:',
+        this.cameraService.getVideoElement()
+      );
       throw new Error(
         'Videoelement wurde nicht registriert.'
       );
