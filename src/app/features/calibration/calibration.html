@@ -1,1 +1,104 @@
-<p>calibration works!</p>
+<div class="calibration-page">
+
+  <h1>
+    Dartboard Kalibrierung
+  </h1>
+
+  <mat-form-field>
+
+    <mat-label>
+      Kamera
+    </mat-label>
+
+    <mat-select
+      [value]="camera.activeDeviceId()"
+      (selectionChange)="
+        changeCamera(
+          $event.value
+        )
+      ">
+
+      @for (
+      device of camera.devices();
+      track device.id
+      ) {
+
+      <mat-option
+        [value]="device.id">
+
+        {{ device.label }}
+
+      </mat-option>
+
+      }
+
+    </mat-select>
+
+  </mat-form-field>
+
+  <div
+    class="camera-container">
+
+    <video
+      #video
+      autoplay
+      muted
+      playsinline>
+    </video>
+
+    <app-board-overlay
+      [board]="board()"
+      [debug]="true"
+      [showBoardGrid]="true">
+    </app-board-overlay>
+
+  </div>
+
+  @if (board()) {
+
+  <div
+    class="board-info">
+
+    <div>
+      X:
+      {{ board()!.centerX.toFixed(0) }}
+    </div>
+
+    <div>
+      Y:
+      {{ board()!.centerY.toFixed(0) }}
+    </div>
+
+    <div>
+      Radius:
+      {{ board()!.radius.toFixed(0) }}
+    </div>
+
+  </div>
+
+  }
+
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="!boardDetected()"
+    (click)="saveCalibration()">
+
+    Kalibrierung speichern
+
+  </button>
+
+  @if (
+  calibrationSaved()
+  ) {
+
+  <div
+    class="success">
+
+    Kalibrierung gespeichert.
+
+  </div>
+
+  }
+
+</div>

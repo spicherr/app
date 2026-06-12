@@ -22,6 +22,7 @@ import {
 } from '../../core/services/scoring';
 import {MatBadgeModule} from '@angular/material/badge';
 import {Scoreboard} from '../../shared/scoreboard/scoreboard';
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'app-game',
@@ -29,6 +30,7 @@ import {Scoreboard} from '../../shared/scoreboard/scoreboard';
   imports: [
     MatChipsModule,
     MatBadgeModule,
+    CommonModule,
     CameraView,
     BoardOverlay,
     Scoreboard

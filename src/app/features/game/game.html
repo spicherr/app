@@ -1,15 +1,13 @@
 <div class="game-container">
-
   <div class="board-area">
     <app-camera-view></app-camera-view>
     <br>
     <app-board-overlay
       [board]="pipeline.board()"
-      [darts]="pipeline.detectedDarts()"
       [debug]="debugMode()"
+      [darts]="pipeline.detectedDarts()"
       [showBoardGrid]="showBoardGrid"
     ></app-board-overlay>
-
   </div>
 </div>
 <div class="game-container">

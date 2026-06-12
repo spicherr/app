@@ -15,7 +15,10 @@ import {
 import {
   DartBoard,
 } from '../../core/services/board-detection';
-
+import {
+  PDC_BOARD,
+  PDC_SEGMENTS,
+} from '../../core/constants/pdc-board';
 export interface Dart {
 
   id: string;
@@ -61,6 +64,23 @@ export class BoardOverlay
 
     effect(() => {
 
+      const board =
+        this.board();
+
+      const darts =
+        this.darts();
+
+      const debug =
+        this.debug();
+
+      const showGrid =
+        this.showBoardGrid();
+
+      console.log(
+        'Overlay Update',
+        board
+      );
+
       this.redraw();
 
     });
@@ -80,12 +100,11 @@ export class BoardOverlay
       'resize',
       () => this.resizeCanvas()
     );
-
     this.redraw();
   }
 
   private resizeCanvas(): void {
-    console.log("resizeCanvas")
+
     const video =
       this.cameraService
         .getVideoElement();
@@ -106,8 +125,9 @@ export class BoardOverlay
   }
 
   private redraw(): void {
-    console.log("Redraw");
+
     if (!this.ctx) {
+
       return;
     }
 
@@ -124,11 +144,11 @@ export class BoardOverlay
 
     const board =
       this.board();
-
     if (!board) {
+      console.log("Kein Board vorhanden");
+
       return;
     }
-
     this.drawBoard(board);
 
     if (
@@ -215,7 +235,34 @@ export class BoardOverlay
 
     this.ctx.restore();
   }
+  private drawRing(
+    board: DartBoard,
+    relativeRadius: number
+  ): void {
 
+    if (!this.ctx) {
+      return;
+    }
+
+    this.ctx.beginPath();
+
+    this.ctx.arc(
+      board.centerX,
+      board.centerY,
+      board.radius *
+      relativeRadius,
+      0,
+      Math.PI * 2
+    );
+
+    this.ctx.strokeStyle =
+      '#00cc66';
+
+    this.ctx.lineWidth =
+      2;
+
+    this.ctx.stroke();
+  }
   private drawSegments(
     board: DartBoard
   ): void {
@@ -236,16 +283,19 @@ export class BoardOverlay
         ((i * 18) - 90) *
         Math.PI /
         180;
+      const outerRadius =
+        board.radius *
+        PDC_BOARD.doubleOuter;
 
       const x =
         board.centerX +
         Math.cos(angle) *
-        board.radius;
+        outerRadius;
 
       const y =
         board.centerY +
         Math.sin(angle) *
-        board.radius;
+        outerRadius;
 
       this.ctx.beginPath();
 

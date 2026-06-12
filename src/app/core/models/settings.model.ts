@@ -1,11 +1,25 @@
 export interface AppSettings {
-  cameraId: string | null;
 
-  resolution: ResolutionOption;
+  cameraId:
+    string | null;
 
-  debugMode: boolean;
+  resolution:
+    ResolutionOption;
 
-  detectionSensitivity: number;
+  debugMode:
+    boolean;
+
+  detectionSensitivity:
+    number;
+
+  boardCenterX?:
+    number;
+
+  boardCenterY?:
+    number;
+
+  boardRadius?:
+    number;
 }
 
 export type ResolutionOption =

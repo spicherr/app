@@ -9,7 +9,10 @@ import {
 import {
   Dart,
 } from './dart-detection';
-
+import {
+  PDC_BOARD,
+  PDC_SEGMENTS,
+} from '../constants/pdc-board';
 export interface DartScore {
 
   segment: number;
@@ -18,6 +21,8 @@ export interface DartScore {
 
   score: number;
 }
+
+
 
 @Injectable({
   providedIn: 'root',
@@ -28,49 +33,7 @@ export class ScoringService {
    * Offizielle Segmentreihenfolge
    * beginnend bei 20 (12 Uhr)
    */
-  private readonly segments = [
-    20,
-    1,
-    18,
-    4,
-    13,
-    6,
-    10,
-    15,
-    2,
-    17,
-    3,
-    19,
-    7,
-    16,
-    8,
-    11,
-    14,
-    9,
-    12,
-    5,
-  ];
 
-  /**
-   * Offizielle PDC-Geometrie
-   * relativ zum Boardradius
-   *
-   * Normiert auf den äußeren Double-Ring.
-   */
-  private readonly geometry = {
-
-    outerBull: 15.9 / 170,
-
-    innerBull: 6.35 / 170,
-
-    tripleInner: 99 / 170,
-
-    tripleOuter: 107 / 170,
-
-    doubleInner: 162 / 170,
-
-    doubleOuter: 170 / 170,
-  };
 
   calculateScore(
     board: DartBoard,
@@ -100,7 +63,7 @@ export class ScoringService {
      */
     if (
       normalizedRadius >
-      this.geometry.doubleOuter
+      PDC_BOARD.doubleOuter
     ) {
 
       return {
@@ -115,7 +78,7 @@ export class ScoringService {
      */
     if (
       normalizedRadius <=
-      this.geometry.innerBull
+      PDC_BOARD.innerBull
     ) {
 
       return {
@@ -130,7 +93,7 @@ export class ScoringService {
      */
     if (
       normalizedRadius <=
-      this.geometry.outerBull
+      PDC_BOARD.outerBull
     ) {
 
       return {
@@ -151,9 +114,9 @@ export class ScoringService {
      */
     if (
       normalizedRadius >=
-      this.geometry.tripleInner &&
+      PDC_BOARD.tripleInner &&
       normalizedRadius <=
-      this.geometry.tripleOuter
+      PDC_BOARD.tripleOuter
     ) {
 
       return {
@@ -169,9 +132,9 @@ export class ScoringService {
      */
     if (
       normalizedRadius >=
-      this.geometry.doubleInner &&
+      PDC_BOARD.doubleInner &&
       normalizedRadius <=
-      this.geometry.doubleOuter
+      PDC_BOARD.doubleOuter
     ) {
 
       return {
@@ -234,8 +197,13 @@ export class ScoringService {
       Math.floor(
         (angle + 9) / 18
       ) % 20;
-
-    return this.segments[
+    console.log({
+      angle,
+      index,
+      segment:
+        PDC_SEGMENTS[index],
+    });
+    return PDC_SEGMENTS[
       index
       ];
   }

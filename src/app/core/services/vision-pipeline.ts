@@ -476,7 +476,34 @@ export class VisionPipelineService {
         'Videostream liefert noch keine Bilddaten.'
       );
     }
+    console.log({
 
+      openCv:
+        this.openCvService.ready(),
+
+      running:
+        this.cameraService.running(),
+
+      videoReady:
+        this.cameraService.videoReady(),
+
+      video:
+        !!this.cameraService
+          .getVideoElement(),
+
+      width:
+      this.cameraService
+        .getVideoElement()
+        ?.videoWidth,
+
+      height:
+      this.cameraService
+        .getVideoElement()
+        ?.videoHeight,
+
+      board:
+        this.board()
+    });
     throw new Error(
       'Vision Pipeline Timeout.'
     );

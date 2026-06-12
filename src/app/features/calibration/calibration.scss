@@ -1,0 +1,46 @@
+.calibration-page {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 1rem;
+
+  padding: 1rem;
+}
+
+.camera-container {
+
+  position: relative;
+
+  width: 1280px;
+
+  max-width: 100%;
+
+  overflow: hidden;
+}
+
+video {
+
+  width: 100%;
+
+  display: block;
+
+  border-radius: 12px;
+}
+
+.board-info {
+
+  display: flex;
+
+  gap: 1rem;
+
+  font-family: monospace;
+}
+
+.success {
+
+  color: #00aa00;
+
+  font-weight: 600;
+}

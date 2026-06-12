@@ -67,6 +67,33 @@ export class SettingsService {
       resolution: '1280x720',
       debugMode: true,
       detectionSensitivity: 50,
+      boardCenterX: undefined,
+      boardCenterY: undefined,
+      boardRadius: undefined,
     });
   }
+
+  updateBoardCalibration(
+    centerX: number,
+    centerY: number,
+    radius: number
+  ): void {
+
+    this._settings.update(
+      state => ({
+
+        ...state,
+
+        boardCenterX:
+        centerX,
+
+        boardCenterY:
+        centerY,
+
+        boardRadius:
+        radius,
+      })
+    );
+  }
+
 }

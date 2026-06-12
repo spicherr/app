@@ -22,6 +22,9 @@ declare const cv: any;
   providedIn: 'root',
 })
 export class BoardDetectionService {
+  readonly calibrated =
+    signal(false);
+
   readonly stableBoard =
     signal<DartBoard | null>(null);
   private readonly cameraService =
@@ -344,5 +347,25 @@ export class BoardDetectionService {
 
       this.detecting.set(false);
     }
+  }
+
+  freezeBoard(): void {
+
+    const board =
+      this.stableBoard();
+
+    if (!board) {
+      return;
+    }
+
+    this.board.set(
+      board
+    );
+
+    this.stop();
+
+    this.calibrated.set(
+      true
+    );
   }
 }
