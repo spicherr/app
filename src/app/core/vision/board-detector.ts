@@ -157,15 +157,26 @@ export class BoardDetector {
         i * 3 + 2
           ];
 
+      const expectedRadius =
+        imageHeight * 0.28;
+      const radiusError =
+        Math.abs(
+          radius - expectedRadius
+        );
+
+      const radiusScore =
+        1 -
+        Math.min(
+          1,
+          radiusError /
+          expectedRadius
+        );
+
       const distance =
         Math.hypot(
           x - centerX,
           y - centerY
         );
-
-      const radiusScore =
-        radius /
-        maxRadius;
 
       const centerScore =
         1 -
@@ -176,8 +187,8 @@ export class BoardDetector {
         );
 
       const score =
-        radiusScore * 0.7 +
-        centerScore * 0.3;
+        radiusScore * 0.6 +
+        centerScore * 0.4;
 
       if (
         score >
@@ -201,6 +212,7 @@ export class BoardDetector {
       circles.data32F[
       offset + 2
         ];
+
 
     return {
 

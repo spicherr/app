@@ -102,6 +102,8 @@ export class BoardDetectionService {
           .settings()
           .detectionSensitivity
       );
+
+
     if (!detected) {
       return this.board();
     }
@@ -114,7 +116,9 @@ export class BoardDetectionService {
       this.board.set(
         detected
       );
-
+      this.stableBoard.set(
+        detected
+      );
       return detected;
     }
 
@@ -150,7 +154,9 @@ export class BoardDetectionService {
     this.board.set(
       smoothed
     );
-
+    this.stableBoard.set(
+      smoothed
+    );
     return smoothed;
   }
 
