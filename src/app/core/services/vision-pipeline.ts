@@ -219,6 +219,7 @@ export class VisionPipelineService {
         currentFrame
       );
 
+
       if (!this.previousFrame) {
 
         this.previousFrame =
@@ -408,9 +409,36 @@ export class VisionPipelineService {
     while (
       attempts < 150
       ) {
+      const video =
+        this.cameraService.getVideoElement();
 
+      console.log({
+
+        ready: this.ready(),
+
+        openCv:
+          this.openCvService.ready(),
+
+        running:
+          this.cameraService.running(),
+
+        videoExists:
+          !!video,
+
+        videoWidth:
+        video?.videoWidth,
+
+        videoHeight:
+        video?.videoHeight,
+
+        videoReady:
+          this.cameraService.videoReady(),
+
+      });
       if (
-        this.ready()
+        this.openCvService.ready() &&
+        this.cameraService.running() &&
+        this.cameraService.videoReady()
       ) {
 
         console.log(

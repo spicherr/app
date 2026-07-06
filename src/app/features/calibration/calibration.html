@@ -46,11 +46,7 @@
       playsinline>
     </video>
 
-    <app-board-overlay
-      [board]="board()"
-      [debug]="true"
-      [showBoardGrid]="true">
-    </app-board-overlay>
+
 
   </div>
 
@@ -71,7 +67,7 @@
 
     <div>
       Radius:
-      {{ board()!.radius.toFixed(0) }}
+      {{ board()!.outerRadius.toFixed(0) }}
     </div>
 
   </div>

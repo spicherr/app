@@ -45,7 +45,10 @@ export class CameraService {
   registerVideoElement(
     video: HTMLVideoElement
   ): void {
-
+    console.log(
+      'Video registriert',
+      video
+    );
     this.videoElement =
       video;
 

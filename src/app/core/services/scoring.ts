@@ -2,9 +2,6 @@ import {
   Injectable,
 } from '@angular/core';
 
-import {
-  DartBoard,
-} from './board-detection';
 
 import {
   Dart,
@@ -13,6 +10,7 @@ import {
   PDC_BOARD,
   PDC_SEGMENTS,
 } from '../constants/pdc-board';
+import {DetectedBoard} from '../models/dart-board.model';
 export interface DartScore {
 
   segment: number;
@@ -36,7 +34,7 @@ export class ScoringService {
 
 
   calculateScore(
-    board: DartBoard,
+    board: DetectedBoard,
     dart: Dart
   ): DartScore {
 
@@ -56,7 +54,7 @@ export class ScoringService {
 
     const normalizedRadius =
       distance /
-      board.radius;
+      board.outerRadius;
 
     /**
      * Außerhalb Board

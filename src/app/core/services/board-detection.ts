@@ -8,13 +8,9 @@ import {
 import { CameraService } from './camera';
 import { SettingsService } from './settings';
 import { OpenCvService } from './open-cv';
+import {BoardDetector} from '../vision/board-detector';
+import {DetectedBoard} from '../models/dart-board.model';
 
-export interface DartBoard {
-  centerX: number;
-  centerY: number;
-  radius: number;
-  confidence: number;
-}
 
 declare const cv: any;
 
@@ -26,7 +22,7 @@ export class BoardDetectionService {
     signal(false);
 
   readonly stableBoard =
-    signal<DartBoard | null>(null);
+    signal<DetectedBoard | null>(null);
   private readonly cameraService =
     inject(CameraService);
 
@@ -35,11 +31,12 @@ export class BoardDetectionService {
 
   private readonly openCvService =
     inject(OpenCvService);
-
+  private readonly boardDetector =
+    inject(BoardDetector);
   private detectionTimer?: number;
 
   readonly board =
-    signal<DartBoard | null>(null);
+    signal<DetectedBoard | null>(null);
 
   readonly running =
     signal(false);
@@ -96,13 +93,15 @@ export class BoardDetectionService {
 
   trackBoard(
     imageData: ImageData
-  ): DartBoard | null {
+  ): DetectedBoard | null {
 
     const detected =
-      this.detectBoard(
-        imageData
+      this.boardDetector.detect(
+        imageData,
+        this.settingsService
+          .settings()
+          .detectionSensitivity
       );
-
     if (!detected) {
       return this.board();
     }
@@ -121,7 +120,7 @@ export class BoardDetectionService {
 
     const alpha = 0.2;
 
-    const smoothed: DartBoard = {
+    const smoothed: DetectedBoard = {
 
       centerX:
         current.centerX +
@@ -137,11 +136,11 @@ export class BoardDetectionService {
           current.centerY
         ) * alpha,
 
-      radius:
-        current.radius +
+      outerRadius:
+        current.outerRadius +
         (
-          detected.radius -
-          current.radius
+          detected.outerRadius -
+          current.outerRadius
         ) * alpha,
 
       confidence:
@@ -155,217 +154,4 @@ export class BoardDetectionService {
     return smoothed;
   }
 
-  detectBoard(
-    imageData: ImageData
-  ): DartBoard | null {
-
-    if (!this.openCvService.ready()) {
-      return null;
-    }
-
-    if (
-      !imageData ||
-      imageData.width === 0 ||
-      imageData.height === 0
-    ) {
-      return null;
-    }
-
-    let src: any;
-    let gray: any;
-    let circles: any;
-
-    try {
-
-      this.detecting.set(true);
-      this.error.set(null);
-
-      src = new cv.Mat(
-        imageData.height,
-        imageData.width,
-        cv.CV_8UC4
-      );
-
-      src.data.set(
-        imageData.data
-      );
-
-      gray =
-        new cv.Mat();
-
-      circles =
-        new cv.Mat();
-
-      cv.cvtColor(
-        src,
-        gray,
-        cv.COLOR_RGBA2GRAY
-      );
-
-      cv.GaussianBlur(
-        gray,
-        gray,
-        new cv.Size(9, 9),
-        2,
-        2,
-        cv.BORDER_DEFAULT
-      );
-
-      const sensitivity =
-        this.settingsService
-          .settings()
-          .detectionSensitivity;
-
-      const param2 =
-        Math.max(
-          20,
-          70 - sensitivity * 0.5
-        );
-
-      const minRadius =
-        Math.floor(
-          imageData.height * 0.15
-        );
-
-      const maxRadius =
-        Math.floor(
-          imageData.height * 0.48
-        );
-
-      cv.HoughCircles(
-        gray,
-        circles,
-        cv.HOUGH_GRADIENT,
-        1,
-        100,
-        120,
-        param2,
-        minRadius,
-        maxRadius
-      );
-
-      if (
-        !circles ||
-        circles.cols === 0
-      ) {
-        return null;
-      }
-
-      let bestIndex = 0;
-      let largestRadius = 0;
-
-      for (
-        let i = 0;
-        i < circles.cols;
-        i++
-      ) {
-
-        const radius =
-          circles.data32F[
-          i * 3 + 2
-            ];
-
-        if (
-          radius >
-          largestRadius
-        ) {
-
-          largestRadius =
-            radius;
-
-          bestIndex = i;
-        }
-      }
-
-      const offset =
-        bestIndex * 3;
-
-      const centerX =
-        circles.data32F[offset];
-
-      const centerY =
-        circles.data32F[
-        offset + 1
-          ];
-
-      const radius =
-        circles.data32F[
-        offset + 2
-          ];
-      const confidence =
-        Math.min(
-          1,
-          radius /
-          maxRadius
-        );
-      const board: DartBoard = {
-        centerX,
-        centerY,
-        radius,
-//      TODO: confidence berechnen lassen
-        confidence: 1,
-      };
-
-      this.board.set(
-        board
-      );
-      console.log({
-        radius,
-        maxRadius,
-        confidence,
-      });
-//     if (
-//       board.confidence >= 0.8
-//     ) {
-//       this.stableBoard.set(
-//         board
-//       );
-//     }
-//      TODO: reaktiviere board.confidence
-       this.stableBoard.set(board);
-
-      return board;
-
-    } catch (error) {
-
-      console.error(
-        'BoardDetection Error',
-        error
-      );
-
-      this.error.set(
-        'Board-Erkennung fehlgeschlagen'
-      );
-
-      return null;
-
-    } finally {
-
-      src?.delete?.();
-      gray?.delete?.();
-      circles?.delete?.();
-
-      this.detecting.set(false);
-    }
-  }
-
-  freezeBoard(): void {
-
-    const board =
-      this.stableBoard();
-
-    if (!board) {
-      return;
-    }
-
-    this.board.set(
-      board
-    );
-
-    this.stop();
-
-    this.calibrated.set(
-      true
-    );
-  }
 }

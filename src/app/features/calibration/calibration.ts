@@ -36,9 +36,6 @@ import {
   OpenCvService,
 } from '../../core/services/open-cv';
 
-import {
-  BoardOverlay,
-} from '../../shared/board-overlay/board-overlay';
 
 @Component({
   selector: 'app-calibration',
@@ -47,7 +44,7 @@ import {
     CommonModule,
     MatButtonModule,
     MatSelectModule,
-    BoardOverlay,
+
   ],
   templateUrl: './calibration.html',
   styleUrl: './calibration.scss',
@@ -139,7 +136,7 @@ export class Calibration
       .updateBoardCalibration(
         board.centerX,
         board.centerY,
-        board.radius
+        board.outerRadius
       );
 
     this.boardDetection.stop();

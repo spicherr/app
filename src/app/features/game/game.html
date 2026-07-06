@@ -1,100 +1,23 @@
-<div class="game-container">
-  <div class="board-area">
-    <app-camera-view></app-camera-view>
-    <br>
-    <app-board-overlay
-      [board]="pipeline.board()"
-      [debug]="debugMode()"
-      [darts]="pipeline.detectedDarts()"
-      [showBoardGrid]="showBoardGrid"
-    ></app-board-overlay>
-  </div>
-</div>
-<div class="game-container">
+<div class="game-layout">
 
+  <div class="top-section">
+      <app-camera-view
+        [board]="pipeline.board()"
+        [darts]="pipeline.detectedDarts()"
+        [debug]="debugMode()"
+        [showBoardGrid]="showBoardGrid">
+      </app-camera-view>
 
-<div class="score-area">
+    <div class="score-area">
 
-  <h3>Erkannte Würfe</h3>
-  <div class="throw-panel">
-
-    <div class="throw-total">
-
-      {{ pipeline.getTotalScore() }}
+      <!-- dein komplettes ScorePanel -->
 
     </div>
 
-    <div class="throw-grid">
-
-      @for (
-      scoredDart of pipeline.scoredDarts();
-      track scoredDart.dart.id
-      ) {
-
-      <div class="throw-cell">
-
-        <div class="throw-score">
-
-          {{ scoredDart.score.score }}
-
-        </div>
-
-        <div class="throw-segment">
-
-          {{ getBadgeText(
-          scoredDart.score
-          ) }}
-
-        </div>
-
-      </div>
-
-      }
-
-      @for (
-      empty of getMissingThrows();
-      track $index
-      ) {
-
-      <div class="throw-cell empty">
-
-        <div class="throw-score">
-          -
-        </div>
-
-        <div class="throw-segment">
-          -
-        </div>
-
-      </div>
-
-      }
-
-    </div>
   </div>
-  <div class="actions">
 
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="nextTurn()">
+  <app-scoreboard
+    [players]="scoreboardPlayers()">
+  </app-scoreboard>
 
-      Neue Aufnahme
-
-    </button>
-
-    <button
-      mat-stroked-button
-      color="warn"
-      (click)="pipeline.clear()">
-
-      Reset
-
-    </button>
-
-  </div>
-</div>
-</div>
-<div class="game-container">
-<app-scoreboard [players]="scoreboardPlayers()"></app-scoreboard>
 </div>

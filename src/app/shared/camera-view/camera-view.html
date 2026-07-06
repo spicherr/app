@@ -1,46 +1,47 @@
 <div class="camera-container">
-  <select
-    #cameraSelect
-    (change)="changeCamera(cameraSelect.value)"
-  >
 
-    @for (
-    device of camera.devices();
-    track device.id
-    ) {
+  <mat-form-field appearance="outline" class="camera-select">
+    <mat-label>Kamera</mat-label>
 
-    <option
-      [value]="device.id"
-    >
-      {{ device.label }}
-    </option>
+    <mat-select [value]="camera.activeDeviceId()" (selectionChange)="changeCamera($event.value)">
 
-    }
+      @for (
+        device of camera.devices();
+        track device.id
+      ) {
+      <mat-option [value]="device.id">{{ device.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>
 
-  </select>
+<div class="video-container">
+
   @if (camera.error()) {
 
   <div class="camera-error">
+
     {{ camera.error() }}
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="reloadCamera()">
 
-      Erneut versuchen
+    <button mat-raised-button color="primary" (click)="reloadCamera()">Erneut versuchen</button>
 
-    </button>
   </div>
 
   } @else {
+  <div class="viewPort">
+    <video
+      #video
+      autoplay
+      muted
+      playsinline>
+    </video>
 
-  <video
-    #video
-    autoplay
-    muted
-    playsinline>
-  </video>
+    <canvas
+      #canvas
+      class="render-canvas">
+    </canvas>
 
+  </div>
   }
 
 </div>

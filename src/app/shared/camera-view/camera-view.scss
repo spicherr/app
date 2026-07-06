@@ -1,22 +1,76 @@
 :host {
   display: block;
-
   width: 100%;
-  height: 100%;
 }
 
 .camera-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   width: 100%;
-  height: 100%;
 }
 
-video {
-  display: block;
+.camera-select {
+  width: 100%;
+}
 
+.camera-select .mat-mdc-text-field-wrapper {
+  min-height: 56px !important;
+}
+
+.camera-select .mat-mdc-form-field-flex {
+  min-height: 56px !important;
+}
+.video-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #000;
+}
+.camera-error {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  pointer-events: none;
+}
+.render-canvas {
+  display: block;
   width: 100%;
   height: auto;
+}
+app-board-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
 
-  object-fit: contain;
+@media (max-width: 768px) {
 
-  background: black;
+.viewPort {
+  position: relative;
+  width: 100%;
+  max-width: min(95vw, 420px);
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #000;
+  margin: 0 auto;
+
+  transition:
+    transform
+    300ms ease;
+}
+
 }

@@ -7,8 +7,6 @@ import {
 } from '@angular/core';
 import {MatChipsModule} from '@angular/material/chips';
 import { CameraView } from '../../shared/camera-view/camera-view';
-import { BoardOverlay } from '../../shared/board-overlay/board-overlay';
-
 import {
   VisionPipelineService,
 } from '../../core/services/vision-pipeline';
@@ -32,7 +30,6 @@ import {CommonModule} from '@angular/common';
     MatBadgeModule,
     CommonModule,
     CameraView,
-    BoardOverlay,
     Scoreboard
   ],
   templateUrl: './game.html',
