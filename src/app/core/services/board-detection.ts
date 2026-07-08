@@ -1,48 +1,38 @@
-import {
-  Injectable,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import {computed, inject, Injectable, signal,} from '@angular/core';
 
-import { CameraService } from './camera';
-import { SettingsService } from './settings';
-import { OpenCvService } from './open-cv';
+import {CameraService} from './camera';
+import {SettingsService} from './settings';
+import {OpenCvService} from './open-cv';
 import {BoardDetector} from '../vision/board-detector';
 import {DetectedBoard} from '../models/dart-board.model';
-
-
-declare const cv: any;
+import {BoardDetectionState,} from '../vision/states/board-detection-state';
+import {BoardTracker} from '../vision/board-tracker';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BoardDetectionService {
-  readonly calibrated =
-    signal(false);
+  readonly state =
+    signal(
+      BoardDetectionState.Idle
+    );
+    private readonly boardTracker =
+    inject(
+      BoardTracker
+    );
+  private readonly boardDetector =
+    inject(BoardDetector);
+  readonly board =
+    this.boardTracker.board;
 
-  readonly stableBoard =
-    signal<DetectedBoard | null>(null);
   private readonly cameraService =
     inject(CameraService);
 
   private readonly settingsService =
     inject(SettingsService);
 
-  private readonly openCvService =
-    inject(OpenCvService);
-  private readonly boardDetector =
-    inject(BoardDetector);
   private detectionTimer?: number;
 
-  readonly board =
-    signal<DetectedBoard | null>(null);
-
-  readonly running =
-    signal(false);
-
-  readonly detecting =
-    signal(false);
 
   readonly error =
     signal<string | null>(null);
@@ -53,11 +43,14 @@ export class BoardDetectionService {
 
   start(): void {
 
-    if (this.running()) {
+    if (this.state() !==
+    BoardDetectionState.Idle
+    ) {
       return;
     }
+    this.startSearching();
 
-    this.running.set(true);
+    this.state.set(BoardDetectionState.Searching);
 
     this.detectionTimer =
       window.setInterval(() => {
@@ -84,7 +77,7 @@ export class BoardDetectionService {
       this.detectionTimer = undefined;
     }
 
-    this.running.set(false);
+    this.state.set(BoardDetectionState.Idle);
   }
 
   clear(): void {
@@ -92,72 +85,59 @@ export class BoardDetectionService {
   }
 
   trackBoard(
-    imageData: ImageData
+    imageData: ImageData,
   ): DetectedBoard | null {
 
     const detected =
       this.boardDetector.detect(
+
         imageData,
+
         this.settingsService
           .settings()
-          .detectionSensitivity
+          .detectionSensitivity,
+
       );
 
+    if (
+      !detected
+    ) {
 
-    if (!detected) {
-      return this.board();
+      return null;
+
     }
 
-    const current =
-      this.board();
+    this.boardTracker.update(
+      detected
+    );
 
-    if (!current) {
+    return this.board();
 
-      this.board.set(
-        detected
-      );
-      this.stableBoard.set(
-        detected
-      );
-      return detected;
+  }
+  startSearching(): void {
+
+    this.state.set(
+      BoardDetectionState.Searching
+    );
+
+  }
+
+  startTracking(): void {
+
+    this.state.set(
+      BoardDetectionState.Tracking
+    );
+
+  }
+
+  boardLost(): void {
+
+    if (!this.board()) {
+
+      this.boardLost();
+
     }
 
-    const alpha = 0.2;
-
-    const smoothed: DetectedBoard = {
-
-      centerX:
-        current.centerX +
-        (
-          detected.centerX -
-          current.centerX
-        ) * alpha,
-
-      centerY:
-        current.centerY +
-        (
-          detected.centerY -
-          current.centerY
-        ) * alpha,
-
-      outerRadius:
-        current.outerRadius +
-        (
-          detected.outerRadius -
-          current.outerRadius
-        ) * alpha,
-
-      confidence:
-      detected.confidence,
-    };
-
-    this.board.set(
-      smoothed
-    );
-    this.stableBoard.set(
-      smoothed
-    );
-    return smoothed;
   }
 
 }

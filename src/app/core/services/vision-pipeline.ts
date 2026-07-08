@@ -30,6 +30,9 @@ import {
 import {
   GameService,
 } from './game';
+import {DebugService} from './debug';
+import {BoardTracker} from '../vision/board-tracker';
+import {BoardDetectionState} from '../vision/states/board-detection-state';
 
 export interface ScoredDart {
 
@@ -42,6 +45,10 @@ export interface ScoredDart {
   providedIn: 'root',
 })
 export class VisionPipelineService {
+  private readonly debug =
+    inject(
+      DebugService
+    );
   private readonly maxDartsPerTurn = 3;
 
   private readonly minDartDistance = 30;
@@ -69,7 +76,10 @@ export class VisionPipelineService {
 
   private readonly gameService =
     inject(GameService);
-
+  private readonly boardTracker =
+    inject(
+      BoardTracker
+    );
   private pipelineTimer?: number;
 
   private previousFrame:
@@ -88,8 +98,7 @@ export class VisionPipelineService {
     signal<ScoredDart[]>([]);
 
   readonly board =
-    this.boardDetection
-      .stableBoard;
+    this.boardTracker.board;
 
   readonly ready =
     computed(() => {
@@ -119,8 +128,10 @@ export class VisionPipelineService {
 
       await this.waitUntilReady();
 
-      console.log(
+      this.debug.log(
+        'VisionPipeline',
         'Vision Pipeline gestartet'
+
       );
 
       this.running.set(true);
@@ -196,7 +207,9 @@ export class VisionPipelineService {
       this.turnFinished()
     ) {
 
-      console.log(
+      this.debug.log(
+        'VisionPipeline',
+        'processFrame',
         '3 Darts erkannt - Detection gestoppt'
       );
 
@@ -215,9 +228,38 @@ export class VisionPipelineService {
         return;
       }
 
-      this.boardDetection.trackBoard(
-        currentFrame
-      );
+      switch (
+        this.boardDetection.state()
+        ) {
+
+        case BoardDetectionState.Searching:
+
+          this.boardDetection.trackBoard(
+            currentFrame
+          );
+
+          this.previousFrame =
+            currentFrame;
+
+          return;
+
+        case BoardDetectionState.Lost:
+
+          this.boardDetection.trackBoard(
+            currentFrame
+          );
+
+          this.previousFrame =
+            currentFrame;
+
+          return;
+
+        case BoardDetectionState.Tracking:
+
+          break;
+
+      }
+
 
 
       if (!this.previousFrame) {
@@ -244,7 +286,8 @@ export class VisionPipelineService {
             currentFrame
           );
 
-      console.log(
+      this.debug.log(
+        'VisionPipeline',
         'Raw Darts:',
         newDarts.map(
           dart => ({
@@ -327,7 +370,8 @@ export class VisionPipelineService {
             result.score
           );
 
-          console.log(
+          this.debug.log(
+            'VisionPipeline',
             'Dart erkannt:',
             {
               x: Math.round(
@@ -412,7 +456,10 @@ export class VisionPipelineService {
       const video =
         this.cameraService.getVideoElement();
 
-      console.log({
+      this.debug.log(
+        'VisionPipeline',
+        'waitUntilReady:',
+        {
 
         ready: this.ready(),
 
@@ -441,7 +488,9 @@ export class VisionPipelineService {
         this.cameraService.videoReady()
       ) {
 
-        console.log(
+        this.debug.log(
+          'visionPipeline',
+          'waitUntilReady:',
           'Vision Pipeline bereit'
         );
 
@@ -486,7 +535,8 @@ export class VisionPipelineService {
     }
 
     if (!video) {
-      console.log(
+      this.debug.log(
+        'visionPipeline',
         'Videoelement:',
         this.cameraService.getVideoElement()
       );
@@ -504,7 +554,9 @@ export class VisionPipelineService {
         'Videostream liefert noch keine Bilddaten.'
       );
     }
-    console.log({
+    this.debug.log(
+      'visionPipeline',
+      'videoelement:',{
 
       openCv:
         this.openCvService.ready(),

@@ -1,17 +1,42 @@
 import {
   Injectable,
+  inject,
 } from '@angular/core';
+
+import {
+  BoardCandidateDetector,
+} from './board-candidate-detector';
+
+import {
+  BoardCandidate,
+} from '../models/board-candidate.model';
 
 import {
   DetectedBoard,
 } from '../models/dart-board.model';
-
+import {BoardValidator} from './board-validator';
+import {
+  ImagePreprocessor,
+} from './image-preprocessor';
 declare const cv: any;
 
 @Injectable({
   providedIn: 'root',
 })
 export class BoardDetector {
+
+  private readonly candidateDetector =
+    inject(
+      BoardCandidateDetector
+    );
+  private readonly validator =
+    inject(
+      BoardValidator
+    );
+  private readonly preprocessor =
+    inject(
+      ImagePreprocessor
+    );
 
   detect(
     imageData: ImageData,
@@ -28,232 +53,50 @@ export class BoardDetector {
 
     }
 
-    let src: any;
-    let gray: any;
-    let circles: any;
 
-    try {
-
-      src =
-        cv.matFromImageData(
+    const gray =
+      this.preprocessor
+        .preprocess(
           imageData
         );
-
-      gray =
-        new cv.Mat();
-
-      circles =
-        new cv.Mat();
-
-      cv.cvtColor(
-        src,
-        gray,
-        cv.COLOR_RGBA2GRAY
+    const threshold =
+      this.preprocessor.preprocessForContours(
+        imageData
       );
+    try {
 
-      cv.GaussianBlur(
-        gray,
-        gray,
-        new cv.Size(9, 9),
-        2,
-        2,
-        cv.BORDER_DEFAULT
-      );
 
-      const param2 =
-        Math.max(
-          20,
-          70 -
-          sensitivity * 0.5
+
+      const candidates =
+        this.candidateDetector.detect(
+          gray,
+          threshold,
+          imageData.width,
+          imageData.height,
+          sensitivity
         );
-
-      const minRadius =
-        Math.floor(
-          imageData.height * 0.15
-        );
-
-      const maxRadius =
-        Math.floor(
-          imageData.height * 0.48
-        );
-
-      cv.HoughCircles(
-        gray,
-        circles,
-        cv.HOUGH_GRADIENT,
-        1,
-        100,
-        120,
-        param2,
-        minRadius,
-        maxRadius
-      );
 
       if (
-        circles.cols === 0
+        candidates.length === 0
       ) {
 
         return null;
 
       }
 
-      const board =
-        this.findBestCircle(
-          circles,
-          imageData.width,
-          imageData.height,
-          maxRadius
-        );
+      return this.validator.validate(
+        candidates,
+        imageData.width,
+        imageData.height,
 
-      return board;
+      );
 
     } finally {
 
-      src?.delete();
-
       gray?.delete();
-
-      circles?.delete();
-
-    }
-
-  }
-
-  private findBestCircle(
-    circles: any,
-    imageWidth: number,
-    imageHeight: number,
-    maxRadius: number,
-  ): DetectedBoard {
-
-    let bestIndex = 0;
-
-    let bestScore = -1;
-
-    const centerX =
-      imageWidth / 2;
-
-    const centerY =
-      imageHeight / 2;
-
-
-    console.log('Kandidaten');
-
-    for (
-      let i = 0;
-      i < circles.cols;
-      i++
-    ) {
-
-      console.log({
-
-        x:
-          circles.data32F[i * 3],
-
-        y:
-          circles.data32F[i * 3 + 1],
-
-        radius:
-          circles.data32F[i * 3 + 2],
-
-      });
+      threshold?.delete();
 
     }
-
-    for (
-      let i = 0;
-      i < circles.cols;
-      i++
-    ) {
-
-      const x =
-        circles.data32F[
-        i * 3
-          ];
-
-      const y =
-        circles.data32F[
-        i * 3 + 1
-          ];
-
-      const radius =
-        circles.data32F[
-        i * 3 + 2
-          ];
-
-      const expectedRadius =
-        imageHeight * 0.28;
-      const radiusError =
-        Math.abs(
-          radius - expectedRadius
-        );
-
-      const radiusScore =
-        1 -
-        Math.min(
-          1,
-          radiusError /
-          expectedRadius
-        );
-
-      const distance =
-        Math.hypot(
-          x - centerX,
-          y - centerY
-        );
-
-      const centerScore =
-        1 -
-        distance /
-        Math.max(
-          imageWidth,
-          imageHeight
-        );
-
-      const score =
-        radiusScore * 0.6 +
-        centerScore * 0.4;
-
-      if (
-        score >
-        bestScore
-      ) {
-
-        bestScore =
-          score;
-
-        bestIndex =
-          i;
-
-      }
-
-    }
-
-    const offset =
-      bestIndex * 3;
-
-    const radius =
-      circles.data32F[
-      offset + 2
-        ];
-
-
-    return {
-
-      centerX:
-        circles.data32F[offset],
-
-      centerY:
-        circles.data32F[
-        offset + 1
-          ],
-
-      outerRadius: radius,
-
-      confidence:
-      bestScore,
-
-    };
 
   }
 
