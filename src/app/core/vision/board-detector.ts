@@ -136,6 +136,30 @@ export class BoardDetector {
     const centerY =
       imageHeight / 2;
 
+
+    console.log('Kandidaten');
+
+    for (
+      let i = 0;
+      i < circles.cols;
+      i++
+    ) {
+
+      console.log({
+
+        x:
+          circles.data32F[i * 3],
+
+        y:
+          circles.data32F[i * 3 + 1],
+
+        radius:
+          circles.data32F[i * 3 + 2],
+
+      });
+
+    }
+
     for (
       let i = 0;
       i < circles.cols;
