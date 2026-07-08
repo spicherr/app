@@ -181,11 +181,15 @@ export class CameraView
 
     const resize = () => {
 
-      canvas.width =
-        video.videoWidth;
+      const size =
+        Math.min(
+          video.videoWidth,
+          video.videoHeight
+        );
 
-      canvas.height =
-        video.videoHeight;
+      canvas.width = size;
+
+      canvas.height = size;
 
       console.log(
         'Canvas initialisiert:',

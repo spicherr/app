@@ -1,38 +1,55 @@
-import {DetectedBoard} from '../models/dart-board.model';
-import {Injectable, signal} from '@angular/core';
+import {
+  Injectable,
+  computed,
+  signal,
+} from '@angular/core';
+
+import {
+  DetectedBoard,
+} from '../models/dart-board.model';
 
 @Injectable({
   providedIn: 'root',
 })
-
 export class BoardTracker {
+
+  private readonly alpha =
+    0.15;
+
+  private readonly maxLostFrames =
+    5;
+
   readonly board =
     signal<DetectedBoard | null>(
       null
     );
+
   readonly lostFrames =
     signal(0);
+
+  readonly tracking =
+    computed(
+      () => this.board() !== null
+    );
+
   update(
-    detected: DetectedBoard
-  ): void {
+    detected: DetectedBoard,
+  ): boolean {
+
+    this.lostFrames.set(0);
 
     const current =
       this.board();
 
-    if (
-      !current
-    ) {
+    if (!current) {
 
       this.board.set(
         detected
       );
 
-      return;
+      return true;
 
     }
-
-    const alpha =
-      0.15;
 
     this.board.set({
 
@@ -41,42 +58,56 @@ export class BoardTracker {
         (
           detected.centerX -
           current.centerX
-        ) * alpha,
+        ) * this.alpha,
 
       centerY:
         current.centerY +
         (
           detected.centerY -
           current.centerY
-        ) * alpha,
+        ) * this.alpha,
 
       outerRadius:
         current.outerRadius +
         (
           detected.outerRadius -
           current.outerRadius
-        ) * alpha,
+        ) * this.alpha,
 
       confidence:
-      detected.confidence,
+        current.confidence +
+        (
+          detected.confidence -
+          current.confidence
+        ) * this.alpha,
 
     });
 
-  }
-  isTracking(): boolean {
-
-    return (
-      this.board() !== null
-    );
+    return true;
 
   }
-  lost(): void {
+
+  loseFrame(): boolean {
 
     this.lostFrames.update(
-      value => value + 1
+      frames => frames + 1
     );
 
+    if (
+      this.lostFrames() <
+      this.maxLostFrames
+    ) {
+
+      return true;
+
+    }
+
+    this.reset();
+
+    return false;
+
   }
+
   reset(): void {
 
     this.board.set(
@@ -88,4 +119,13 @@ export class BoardTracker {
     );
 
   }
+
+  isTracking(): boolean {
+
+    return (
+      this.board() !== null
+    );
+
+  }
+
 }

@@ -209,194 +209,61 @@ export class VisionPipelineService {
 
       this.debug.log(
         'VisionPipeline',
-        'processFrame',
-        '3 Darts erkannt - Detection gestoppt'
+        '3 Darts erkannt'
       );
 
       this.stop();
 
       return;
+
     }
 
     try {
 
-      const currentFrame =
+      const frame =
         this.cameraService
           .captureCurrentFrame();
 
-      if (!currentFrame) {
+      if (!frame) {
+
         return;
+
       }
 
       switch (
         this.boardDetection.state()
         ) {
 
+        case BoardDetectionState.Idle:
+
+          this.boardDetection
+            .startSearching();
+
+          break;
+
         case BoardDetectionState.Searching:
 
-          this.boardDetection.trackBoard(
-            currentFrame
+          this.processSearching(
+            frame
           );
 
-          this.previousFrame =
-            currentFrame;
+          break;
 
-          return;
+        case BoardDetectionState.Tracking:
+
+          this.processTracking(
+            frame
+          );
+
+          break;
 
         case BoardDetectionState.Lost:
 
-          this.boardDetection.trackBoard(
-            currentFrame
-          );
-
-          this.previousFrame =
-            currentFrame;
-
-          return;
-
-        case BoardDetectionState.Tracking:
+          this.processLost();
 
           break;
 
       }
-
-
-
-      if (!this.previousFrame) {
-
-        this.previousFrame =
-          currentFrame;
-
-        return;
-      }
-      const board =
-        this.board();
-
-      if (!board) {
-
-        this.previousFrame =
-          currentFrame;
-
-        return;
-      }
-      const newDarts =
-        this.dartDetection
-          .detectNewDarts(
-            this.previousFrame,
-            currentFrame
-          );
-
-      this.debug.log(
-        'VisionPipeline',
-        'Raw Darts:',
-        newDarts.map(
-          dart => ({
-            x: Math.round(
-              dart.tipX
-            ),
-            y: Math.round(
-              dart.tipY
-            ),
-            confidence:
-            dart.confidence,
-          })
-        )
-      );
-
-      if (
-        newDarts.length === 0
-      ) {
-
-        this.previousFrame =
-          currentFrame;
-
-        return;
-      }
-
-      const uniqueDarts =
-        this.filterNewDarts(
-          newDarts
-        );
-
-      if (
-        uniqueDarts.length === 0
-      ) {
-
-        this.previousFrame =
-          currentFrame;
-
-        return;
-      }
-
-      this.detectedDarts.update(
-        darts => [
-          ...darts,
-          ...uniqueDarts,
-        ]
-      );
-
-      if (board) {
-
-        const scored =
-          [...this.scoredDarts()];
-
-        for (
-          const dart of uniqueDarts
-          ) {
-
-          if (
-            scored.length >=
-            this.maxDartsPerTurn
-          ) {
-
-            break;
-          }
-
-          const result =
-            this.scoringService
-              .calculateScore(
-                board,
-                dart
-              );
-
-          scored.push({
-
-            dart,
-
-            score: result,
-          });
-
-          this.gameService.addThrow(
-            result.score
-          );
-
-          this.debug.log(
-            'VisionPipeline',
-            'Dart erkannt:',
-            {
-              x: Math.round(
-                dart.tipX
-              ),
-              y: Math.round(
-                dart.tipY
-              ),
-              score:
-              result.score,
-              segment:
-              result.segment,
-              multiplier:
-              result.multiplier,
-            }
-          );
-        }
-
-        this.scoredDarts.set(
-          scored
-        );
-      }
-
-      this.previousFrame =
-        currentFrame;
 
     } catch (error) {
 
@@ -405,7 +272,233 @@ export class VisionPipelineService {
       this.error.set(
         'Vision Pipeline Fehler'
       );
+
     }
+
+  }
+  private processSearching(
+    frame: ImageData,
+  ): void {
+
+    const tracking =
+      this.boardDetection
+        .trackBoard(
+          frame
+        );
+
+    this.previousFrame =
+      frame;
+
+    if (
+      tracking
+    ) {
+
+      this.debug.log(
+        'VisionPipeline',
+        'Board erkannt'
+      );
+
+    }
+
+  }
+  private processLost(): void {
+
+    this.debug.log(
+
+      'VisionPipeline',
+
+      'Board verloren'
+
+    );
+
+    this.boardDetection
+      .startSearching();
+
+  }
+
+  private processTracking(
+    currentFrame: ImageData,
+  ): void {
+
+    if (
+      !this.previousFrame
+    ) {
+
+      this.previousFrame =
+        currentFrame;
+
+      return;
+
+    }
+
+    const board =
+      this.board();
+
+    if (
+      !board
+    ) {
+
+      this.boardDetection
+        .boardLost();
+
+      this.previousFrame =
+        currentFrame;
+
+      return;
+
+    }
+
+    const newDarts =
+      this.dartDetection
+        .detectNewDarts(
+
+          this.previousFrame,
+
+          currentFrame,
+
+        );
+
+    this.debug.log(
+
+      'VisionPipeline',
+
+      'Raw Darts',
+
+      newDarts.map(
+        dart => ({
+
+          x: Math.round(
+            dart.tipX
+          ),
+
+          y: Math.round(
+            dart.tipY
+          ),
+
+          confidence:
+          dart.confidence,
+
+        })
+      )
+
+    );
+
+    if (
+      newDarts.length === 0
+    ) {
+
+      this.previousFrame =
+        currentFrame;
+
+      return;
+
+    }
+
+    const uniqueDarts =
+      this.filterNewDarts(
+        newDarts
+      );
+
+    if (
+      uniqueDarts.length === 0
+    ) {
+
+      this.previousFrame =
+        currentFrame;
+
+      return;
+
+    }
+
+    this.detectedDarts.update(
+      darts => [
+
+        ...darts,
+
+        ...uniqueDarts,
+
+      ]
+    );
+
+    const scored =
+      [
+        ...this.scoredDarts()
+      ];
+
+    for (
+      const dart of uniqueDarts
+      ) {
+
+      if (
+        scored.length >=
+        this.maxDartsPerTurn
+      ) {
+
+        break;
+
+      }
+
+      const result =
+        this.scoringService
+          .calculateScore(
+
+            board,
+
+            dart,
+
+          );
+
+      scored.push({
+
+        dart,
+
+        score: result,
+
+      });
+
+      this.gameService
+        .addThrow(
+          result.score
+        );
+
+      this.debug.log(
+
+        'VisionPipeline',
+
+        'Dart erkannt',
+
+        {
+
+          x: Math.round(
+            dart.tipX
+          ),
+
+          y: Math.round(
+            dart.tipY
+          ),
+
+          score:
+          result.score,
+
+          segment:
+          result.segment,
+
+          multiplier:
+          result.multiplier,
+
+        }
+
+      );
+
+    }
+
+    this.scoredDarts.set(
+      scored
+    );
+
+    this.previousFrame =
+      currentFrame;
+
   }
 
   private filterNewDarts(

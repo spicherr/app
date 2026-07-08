@@ -110,7 +110,7 @@ export class Calibration
         .start();
     }
 
-    this.boardDetection.start();
+    this.boardDetection.startTracking();
   }
 
   async changeCamera(

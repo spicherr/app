@@ -39,9 +39,6 @@ export class CameraRendererService {
       canvas.height
     );
 
-    this.drawVideo(
-      data
-    );
     const viewport =
       board
         ? this.calculateViewport(
@@ -52,6 +49,11 @@ export class CameraRendererService {
           canvas.height
         )
         : undefined;
+
+    this.drawVideo(
+      data,
+      viewport
+    );
 
     if (viewport) {
 
@@ -84,7 +86,10 @@ export class CameraRendererService {
       video,
 
     } = data;
-
+    console.log({
+      canvasWidth: canvas.width,
+      canvasHeight: canvas.height,
+    });
     /**
      * Noch kein Viewport vorhanden.
      * Gesamtes Kamerabild zeichnen.
@@ -430,7 +435,7 @@ export class CameraRendererService {
      * 20 % Rand
      */
     const zoomFactor =
-      1.20;
+      1.2;
 
     const cropSize =
       board.outerRadius *
